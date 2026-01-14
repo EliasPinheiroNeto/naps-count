@@ -43,7 +43,7 @@
 
     .nap-card {
       background: white;
-      border-radius: 20px;
+      border-radius: 8px;
       padding: 1.5rem;
       display: flex;
       align-items: center;
@@ -98,7 +98,7 @@
       background: linear-gradient(135deg, #8b95c9 0%, #9ca3b8 100%);
       color: white;
       border: none;
-      border-radius: 12px;
+      border-radius: 4px;
       padding: 0.75rem 1.25rem;
       font-size: 0.95rem;
       font-weight: 600;
@@ -125,7 +125,7 @@
       background: transparent;
       color: #64748b;
       border: 2px solid #cbd5e0;
-      border-radius: 12px;
+      border-radius: 4px;
       padding: 0.75rem 1rem;
       font-size: 0.9rem;
       font-weight: 600;
@@ -159,6 +159,69 @@
       text-align: center;
       color: white;
       font-size: 1.2rem;
+    }
+
+    .format-button {
+      background: white;
+      color: #8b95c9;
+      border: none;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: 0 auto 2rem auto;
+      max-width: 300px;
+      width: 100%;
+    }
+
+    .format-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+      background: #f8f9ff;
+    }
+
+    .format-button:active {
+      transform: scale(0.98);
+    }
+
+    .formatted-text {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+
+    .formatted-text.show {
+      display: block;
+    }
+
+    .formatted-text h3 {
+      color: #2d3748;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .formatted-text pre {
+      background: #f7fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 1rem;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 0.95rem;
+      color: #2d3748;
+      line-height: 1.6;
     }
 
     @keyframes napAnimation {
@@ -213,7 +276,15 @@
 <body>
   <div class="container">
     <h1>😴 Contador de Cochilos</h1>
+    <button class="format-button" onclick="generateWhatsAppFormat()">
+      <span>📋</span>
+      <span>Gerar formatação para zap</span>
+    </button>
     <div id="list" class="loading">Carregando...</div>
+    <div id="formatted-output" class="formatted-text">
+      <h3>📱 Texto formatado para WhatsApp</h3>
+      <pre id="formatted-content"></pre>
+    </div>
   </div>
 
   <script type="module">
@@ -291,6 +362,48 @@
       });
       
       await load();
+    }
+
+    window.generateWhatsAppFormat = async () => {
+      const { data } = await supabase.from("naps").select("*").order("total", { ascending: false });
+      
+      if (!data || data.length === 0) {
+        alert('Não há dados para gerar!');
+        return;
+      }
+      
+      let text = '';
+      let total = 0;
+      
+      data.forEach(person => {
+        const napCount = person.total;
+        const napEmojis = '💤'.repeat(napCount); // 1 emoji a cada 2 cochilos
+        text += `${person.name}: ${napEmojis} \n`;
+        total += napCount;
+      });
+      
+      text += `\nTotal: ${total}`;
+      
+      // Exibir o texto formatado na página
+      const outputElement = document.getElementById('formatted-output');
+      const contentElement = document.getElementById('formatted-content');
+      contentElement.textContent = text;
+      outputElement.classList.add('show');
+      
+      // Copiar para clipboard
+      try {
+        await navigator.clipboard.writeText(text);
+        alert('✅ Texto copiado para a área de transferência!\n\nCole no WhatsApp.');
+      } catch (err) {
+        // Fallback para navegadores que não suportam clipboard API
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert('✅ Texto copiado para a área de transferência!\n\nCole no WhatsApp.');
+      }
     }
 
     load();
