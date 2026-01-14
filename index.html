@@ -121,6 +121,12 @@
       transform: scale(0.95);
     }
 
+    .nap-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
     .edit-button {
       background: transparent;
       color: #64748b;
@@ -147,6 +153,14 @@
 
     .edit-button:active {
       transform: scale(0.95);
+    }
+
+    .edit-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #f1f5f9;
+      border-color: #cbd5e0;
+      transform: none;
     }
 
     .button-group {
@@ -189,6 +203,12 @@
 
     .format-button:active {
       transform: scale(0.98);
+    }
+
+    .format-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
     }
 
     .formatted-text {
@@ -333,15 +353,29 @@
       }).join("");
     }
 
+    function disableAllButtons() {
+      document.querySelectorAll('button').forEach(btn => btn.disabled = true);
+    }
+
+    function enableAllButtons() {
+      document.querySelectorAll('button').forEach(btn => btn.disabled = false);
+    }
+
     window.nap = async (name) => {
+      disableAllButtons();
+      
       const card = document.querySelector(`[data-name="${name}"]`);
       if (card) {
         card.classList.add('animating');
         setTimeout(() => card.classList.remove('animating'), 500);
       }
       
-      await supabase.rpc("increment_nap", { username: name });
-      await load();
+      try {
+        await supabase.rpc("increment_nap", { username: name });
+        await load();
+      } finally {
+        enableAllButtons();
+      }
     }
 
     window.editNap = async (name, currentTotal) => {
@@ -356,53 +390,65 @@
         return;
       }
       
-      await supabase.rpc("set_nap", {
-        username: name,
-        new_total: parsed
-      });
+      disableAllButtons();
       
-      await load();
+      try {
+        await supabase.rpc("set_nap", {
+          username: name,
+          new_total: parsed
+        });
+        
+        await load();
+      } finally {
+        enableAllButtons();
+      }
     }
 
     window.generateWhatsAppFormat = async () => {
-      const { data } = await supabase.from("naps").select("*").order("total", { ascending: false });
+      disableAllButtons();
       
-      if (!data || data.length === 0) {
-        alert('Não há dados para gerar!');
-        return;
-      }
-      
-      let text = '';
-      let total = 0;
-      
-      data.forEach(person => {
-        const napCount = person.total;
-        const napEmojis = '💤'.repeat(napCount); // 1 emoji a cada 2 cochilos
-        text += `${person.name}: ${napEmojis} \n`;
-        total += napCount;
-      });
-      
-      text += `\nTotal: ${total}`;
-      
-      // Exibir o texto formatado na página
-      const outputElement = document.getElementById('formatted-output');
-      const contentElement = document.getElementById('formatted-content');
-      contentElement.textContent = text;
-      outputElement.classList.add('show');
-      
-      // Copiar para clipboard
       try {
-        await navigator.clipboard.writeText(text);
-        alert('✅ Texto copiado para a área de transferência!\n\nCole no WhatsApp.');
-      } catch (err) {
-        // Fallback para navegadores que não suportam clipboard API
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        alert('✅ Texto copiado para a área de transferência!\n\nCole no WhatsApp.');
+        const { data } = await supabase.from("naps").select("*").order("total", { ascending: false });
+        
+        if (!data || data.length === 0) {
+          alert('Não há dados para gerar!');
+          return;
+        }
+        
+        let text = '';
+        let total = 0;
+        
+        data.forEach(person => {
+          const napCount = person.total;
+          const napEmojis = '💤'.repeat(napCount); // 1 emoji a cada 2 cochilos
+          text += `${person.name}: ${napEmojis} \n`;
+          total += napCount;
+        });
+        
+        text += `\nTotal: ${total}`;
+        
+        // Exibir o texto formatado na página
+        const outputElement = document.getElementById('formatted-output');
+        const contentElement = document.getElementById('formatted-content');
+        contentElement.textContent = text;
+        outputElement.classList.add('show');
+        
+        // Copiar para clipboard
+        try {
+          await navigator.clipboard.writeText(text);
+          alert('✅ Texto copiado para a área de transferência!\n\nCole no WhatsApp.');
+        } catch (err) {
+          // Fallback para navegadores que não suportam clipboard API
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          alert('✅ Texto copiado para a área de transferência!\n\nCole no WhatsApp.');
+        }
+      } finally {
+        enableAllButtons();
       }
     }
 
