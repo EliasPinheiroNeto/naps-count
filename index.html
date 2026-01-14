@@ -98,16 +98,18 @@
       background: linear-gradient(135deg, #8b95c9 0%, #9ca3b8 100%);
       color: white;
       border: none;
-      border-radius: 50%;
-      width: 60px;
-      height: 60px;
-      font-size: 1.5rem;
+      border-radius: 12px;
+      padding: 0.75rem 1.25rem;
+      font-size: 0.95rem;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 0.5rem;
+      white-space: nowrap;
     }
 
     .nap-button:hover {
@@ -120,24 +122,27 @@
     }
 
     .edit-button {
-      background: #e2e8f0;
-      color: #4a5568;
-      border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      font-size: 1rem;
+      background: transparent;
+      color: #64748b;
+      border: 2px solid #cbd5e0;
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-right: 0.5rem;
+      gap: 0.4rem;
+      white-space: nowrap;
     }
 
     .edit-button:hover {
-      background: #cbd5e0;
-      transform: scale(1.05);
+      background: #f1f5f9;
+      border-color: #94a3b8;
+      color: #475569;
+      transform: translateY(-1px);
     }
 
     .edit-button:active {
@@ -179,6 +184,7 @@
 
       .nap-card {
         padding: 1rem;
+        flex-wrap: wrap;
       }
 
       .nap-name {
@@ -189,16 +195,17 @@
         font-size: 1.5rem;
       }
 
-      .nap-button {
-        width: 50px;
-        height: 50px;
-        font-size: 1.2rem;
+      .button-group {
+        width: 100%;
+        margin-top: 1rem;
+        justify-content: stretch;
       }
 
+      .nap-button,
       .edit-button {
-        width: 35px;
-        height: 35px;
-        font-size: 0.9rem;
+        flex: 1;
+        padding: 0.6rem 0.8rem;
+        font-size: 0.85rem;
       }
     }
   </style>
@@ -241,8 +248,14 @@
             </div>
             <div class="nap-total">${u.total}</div>
             <div class="button-group">
-              <button class="edit-button" onclick="editNap('${u.name}', ${u.total})" title="Editar contagem">✏️</button>
-              <button class="nap-button" onclick="nap('${u.name}')">💤</button>
+              <button class="edit-button" onclick="editNap('${u.name}', ${u.total})" title="Corrigir a contagem manualmente">
+                <span>✏️</span>
+                <span>Editar</span>
+              </button>
+              <button class="nap-button" onclick="nap('${u.name}')" title="Adicionar +1 cochilo">
+                <span>+</span>
+                <span>Cochilo</span>
+              </button>
             </div>
           </div>
         `;
